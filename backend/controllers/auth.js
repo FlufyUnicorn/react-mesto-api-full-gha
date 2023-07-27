@@ -2,14 +2,15 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const ConflictError = require('../utils/errors/ConflictError');
 const User = require('../models/user');
-const { JWT_SECRET, SUCCESS_CREATED_CODE } = require('../utils/constants');
+const { SUCCESS_CREATED_CODE } = require('../utils/constants');
 const BadRequestError = require('../utils/errors/BadRequestError');
+const { getJWT } = require('../utils/getJWT');
 
 const login = (req, res, next) => {
   const { email, password } = req.body;
   User.checkUser(email, password)
     .then((user) => {
-      const token = jwt.sign({ _id: user._id }, JWT_SECRET, { expiresIn: '7d' });
+      const token = jwt.sign({ _id: user._id }, getJWT(), { expiresIn: '7d' });
       res.send({ token });
     })
     .catch((err) => {
