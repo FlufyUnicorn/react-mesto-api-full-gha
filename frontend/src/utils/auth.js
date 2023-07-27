@@ -1,3 +1,5 @@
+import { backendPath } from "./constants";
+
 const handleResponse = async (data) => {
   const res = await data.json()
   if (data.ok) {
@@ -8,7 +10,7 @@ const handleResponse = async (data) => {
 }
 
 export async function register(password, email) {
-  const data = await fetch('https://auth.nomoreparties.co/signup', {
+  const data = await fetch(`https://${backendPath}/signup`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json"
@@ -22,7 +24,7 @@ export async function register(password, email) {
 }
 
 export async function login(password, email) {
-  const data = await fetch('https://auth.nomoreparties.co/signin', {
+  const data = await fetch(`https://${backendPath}/signin`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json"
@@ -36,7 +38,7 @@ export async function login(password, email) {
 }
 
 export async function checkToken(token) {
-  const data = await fetch('https://auth.nomoreparties.co/users/me', {
+  const data = await fetch(`https://${backendPath}/users/me`, {
     method: "GET",
     headers: {
       "Content-Type": "application/json",

@@ -1,0 +1,1 @@
+export const backendPath = 'https://api.mesto-pr.students.nomoreparties.sbs'
