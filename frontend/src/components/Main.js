@@ -23,7 +23,7 @@ function Main(props) {
                 key={card._id}
                 card={card}
                 title={card.name}
-                likeCounter={card.likes.length}
+                likeCounter={card?.likes?.length}
                 image={card.link}
                 onCardClick={props.onCardClick}
                 onCardLike={props.onCardLike}

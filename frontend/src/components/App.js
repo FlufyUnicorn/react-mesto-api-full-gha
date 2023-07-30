@@ -27,8 +27,8 @@ function App() {
   const [selectedCard, setSelectedCard] = React.useState({})
   const [currentUser, setCurrentUser] = React.useState({})
   const [cards, setCards] = React.useState([])
-  const [removedCardId, setRemovedCardId] = React.useState('');
-
+  const [removedCardId, setRemovedCardId] = React.useState('')
+  const [jwt, setJwt] = React.useState('')
   const [loggedIn, setLoggedIn] = React.useState(false)
   const [isOk, setIsOk] = React.useState(false)
   const [error, setError] = React.useState('')
@@ -36,30 +36,83 @@ function App() {
 
   const navigate = useNavigate()
 
-  React.useEffect(() => {
-    api.getUserInfo()
-      .then(res => setCurrentUser(res))
-      .catch(console.log)
-  }, [])
-
-  React.useEffect(() => {
-    api.getInitialCards()
-      .then(res => setCards(res))
-      .catch(console.log)
-  }, [])
-
-  function handleCardClick(card) {
-    setIsImageOpen(true)
-    setSelectedCard(card)
+  const fetchCards = async () => {
+    if (jwt) {
+      try {
+        const res = await api.getInitialCards({
+          authorization: `Bearer ${jwt}`,
+        });
+        setCards(res);
+      } catch (e) {
+        console.warn(e)
+      }
+    }
   }
 
-  function handleCardLike(card) {
-    const isLiked = card.likes.some(i => i._id === currentUser._id)
-    api.changeLikeCardStatus(card._id, !isLiked)
-      .then((newCard) => {
-        setCards((state) => state.map((c) => c._id === card._id ? newCard : c))
-      })
-      .catch(console.log)
+  const handleRegister = async (password, email) => {
+    try {
+      await register(password, email)
+      setIsOk(true);
+      setIsInfoTooltipOpen(true);
+    } catch (e) {
+      console.warn(e);
+      setIsOk(false);
+      setIsInfoTooltipOpen(true);
+      setError(e);
+    }
+  }
+
+  const handleLogin = async (password, email) => {
+    try {
+      const {token} = await login(password, email)
+      const data = await checkToken(token)
+      setUserEmail(data.email)
+      setLoggedIn(true)
+      localStorage.setItem('token', token)
+    } catch (e) {
+      console.warn(e)
+      setIsOk(false)
+      setIsInfoTooltipOpen(true)
+      setError(e)
+    }
+  }
+
+  function logout() {
+    setUserEmail('')
+    localStorage.removeItem('token')
+    setLoggedIn(false)
+  }
+
+  const check = async () => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      setJwt(token);
+      try {
+        const data = await checkToken(token);
+        setCurrentUser(data);
+        setUserEmail(data.email);
+        setLoggedIn(true);
+      } catch (e) {
+        console.warn(e);
+        setLoggedIn(false);
+      }
+    }
+  };
+
+  React.useEffect(() => {
+    check();
+    fetchCards();
+  }, [loggedIn, jwt])
+
+  const handleCardLike = async (card) => {
+    const isLiked = card.likes.some(i => (i._id || i) === currentUser._id);
+    try {
+      const updatedCard  = await api.changeLikeCardStatus(card, !isLiked);
+      setCards((state) => state.map((c) =>  {
+        return c._id === updatedCard._id ? updatedCard : c}));
+    } catch (error) {
+      console.warn(error);
+    }
   }
 
   const handleCardDeleteClick = (cardId) => {
@@ -74,6 +127,39 @@ function App() {
         closeAllPopups()
       })
       .catch(console.log)
+  }
+
+  function handleCardClick(card) {
+    setIsImageOpen(true)
+    setSelectedCard(card)
+  }
+
+  function handleUpdateUser(obj) {
+    api.setUserInfo(obj)
+      .then(res => {
+        setCurrentUser(res)
+        closeAllPopups()
+      })
+      .catch(console.log)
+  }
+
+  function handleUpdateAvatar(obj) {
+    api.changeAvatar(obj)
+      .then(res => {
+        setCurrentUser(res)
+        closeAllPopups()
+      })
+      .catch(console.log)
+  }
+
+  const handleAddPlace = async (obj) => {
+    try {
+      const card = await api.addNewCard(obj);
+      setCards([card, ...cards]);
+      closeAllPopups();
+    } catch (e) {
+      console.warn(e)
+    }
   }
 
   function closeAllPopups() {
@@ -118,88 +204,6 @@ function App() {
 
   function handleAddPlaceClick() {
     setIsAddPlacePopupOpen(true)
-  }
-
-  function handleUpdateUser(obj) {
-    api.setUserInfo(obj)
-      .then(res => {
-        setCurrentUser(res)
-        closeAllPopups()
-      })
-      .catch(console.log)
-  }
-
-  function handleUpdateAvatar(obj) {
-    api.changeAvatar(obj)
-      .then(res => {
-        setCurrentUser(res)
-        closeAllPopups()
-      })
-      .catch(console.log)
-  }
-
-  function handleAddPlace(obj) {
-    api.addNewCard(obj)
-      .then(res => {
-        setCards([res, ...cards])
-        closeAllPopups()
-      })
-      .catch(console.log)
-  }
-
-  function handleRegister(password,email) {
-    register(password, email)
-      .then((data) => {
-        if (data) {
-          setIsOk(true)
-          setIsInfoTooltipOpen(true)
-        }
-      })
-      .catch((e) => {
-        console.warn(e)
-        setIsOk(false)
-        setIsInfoTooltipOpen(true)
-        setError(error)
-      })
-  }
-
-  const handleLogin = async (password, email) => {
-    try {
-      const {token} = await login(password, email)
-      const {data} = await checkToken(token)
-      setUserEmail(data.email)
-      setLoggedIn(true)
-      localStorage.setItem('token', token)
-    } catch (e) {
-      console.warn(e)
-      setIsOk(false)
-      setIsInfoTooltipOpen(true)
-      setError(e)
-    }
-  }
-
-  React.useEffect(() => {
-    const jwt = localStorage.getItem('token')
-    if (jwt) {
-      checkToken(jwt)
-        .then((data) => {
-          if (data) {
-            setLoggedIn(true)
-            setUserEmail(data.data.email)
-            navigate('/')
-          }
-        })
-        .catch((e) => {
-          console.warn(e)
-          setLoggedIn(false)
-        })
-    }
-  },[])
-
-  function logout() {
-    setUserEmail('')
-    localStorage.removeItem('token')
-    setLoggedIn(false)
   }
 
 return (

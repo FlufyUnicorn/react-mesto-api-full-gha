@@ -80,7 +80,7 @@ class Api {
   }
 
   changeLikeCardStatus(obj, variable) {
-    this._status = variable ? this.likeCard(obj) : this.dislikeCard(obj);
+    this._status = variable ? this.likeCard(obj._id) : this.dislikeCard(obj._id)
     return this._status;
   }
 }

@@ -31,6 +31,7 @@ function EditProfilePopup(props) {
       resetForm()
     }
   }, [props.isOpen])
+
   return (
     <PopupWithForm
       id={'profile'}
