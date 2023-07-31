@@ -64,11 +64,12 @@ function App() {
 
   const handleLogin = async (password, email) => {
     try {
-      const {token} = await login(password, email)
+      const { token } = await login(password, email)
       const data = await checkToken(token)
       setUserEmail(data.email)
       setLoggedIn(true)
       localStorage.setItem('token', token)
+      api.updateAuthHeaders({authorization: `Bearer ${token}`})
     } catch (e) {
       console.warn(e)
       setIsOk(false)
@@ -86,7 +87,7 @@ function App() {
   const check = async () => {
     const token = localStorage.getItem('token');
     if (token) {
-      setJwt(token);
+      setJwt(token)
       try {
         const data = await checkToken(token);
         setCurrentUser(data);
@@ -100,6 +101,8 @@ function App() {
   };
 
   React.useEffect(() => {
+    console.log('JWT', jwt);
+    console.log('LOGGED IN', loggedIn);
     check();
     fetchCards();
   }, [loggedIn, jwt])

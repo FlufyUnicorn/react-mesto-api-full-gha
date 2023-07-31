@@ -1,7 +1,16 @@
+import {backendPath} from "./constants";
+
 class Api {
   constructor(data) {
     this._baseUrl = data.baseUrl
     this._headers = data.headers
+  }
+
+  updateAuthHeaders (authHeaders) {
+    this._headers = {
+      ...this._headers,
+      ...authHeaders,
+    }
   }
 
   _handleResponse(res) {
@@ -86,7 +95,7 @@ class Api {
 }
 
 export const api = new Api({
-  baseUrl: "https://api.mesto-pr.students.nomoreparties.sbs",
+  baseUrl: backendPath,
   headers: {
     authorization: `Bearer ${localStorage.getItem('token')}`,
     "Content-Type": "application/json",
