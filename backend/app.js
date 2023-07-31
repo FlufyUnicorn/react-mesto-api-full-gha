@@ -14,7 +14,7 @@ const errorsHandler = require('./middlewares/errorHandler');
 const { requestLogger, errorLogger } = require('./middlewares/logger');
 const cors = require('./middlewares/cors');
 
-const { PORT = 5000, DB_URL = 'mongodb://localhost:27017/mestodb' } = process.env;
+const { PORT = 3000, DB_URL = 'mongodb://localhost:27017/mestodb' } = process.env;
 const app = express();
 app.use(bodyParser.json());
 moongose.connect(DB_URL);

@@ -1,18 +1,15 @@
 const User = require('../models/user');
-const {
-  NOT_FOUND_ERROR_CODE,
-} = require('../utils/constants');
 const BadRequestError = require('../utils/errors/BadRequestError');
+const NotFoundError = require('../utils/errors/NotFoundError');
 
 const getUser = (req, res, next) => {
   const { id } = req.params;
   User.findById(id)
     .then((user) => {
       if (!user) {
-        res.status(NOT_FOUND_ERROR_CODE).send({ message: 'Пользователь не найден' });
-      } else {
-        res.send(user);
+        return next(new NotFoundError('Пользователь не найден'));
       }
+      return res.send(user);
     })
     .catch((err) => {
       if (err.name === 'CastError') {
@@ -57,8 +54,9 @@ const updateAvatar = (req, res, next) => {
     .catch((err) => {
       if (err.name === 'ValidationError') {
         next(new BadRequestError(err.message));
+      } else {
+        next(err);
       }
-      next(err);
     });
 };
 
